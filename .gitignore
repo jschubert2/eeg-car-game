@@ -39,3 +39,10 @@ sysinfo.txt
 Icon?
 ehthumbs.db
 Thumbs.db
+
+unity/*.userprefs
+unity/*.unityproj
+unity/*.sln
+unity/*.csproj
+unity/Library/
+unity/Tmp/
