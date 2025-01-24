@@ -1,4 +1,5 @@
 Game can be found under unity/assets/Car game.unity
+Doubleclick the file to open the project. Don't start with the unity launcher.
 Unity version used: 2022.3.51f1
 
 ## Asset Store Assets:
