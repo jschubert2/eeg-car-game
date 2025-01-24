@@ -13,9 +13,13 @@ https://assetstore.unity.com/packages/3d/environments/urban/city-package-107224
 
 ## Created and modified scripts for the project:
 unity/Assets/Plugins/Emotiv-Unity-Plugin/Src/EmotivUnityItf.cs
+
 unity/Assets/Polystang/Scripts/Car Control.cs
+
 unity/Assets/Finish.cs
+
 unity/Assets/Timer.cs
+
 unity/Assets/CortexInteract.cs
 
 ## Video:
