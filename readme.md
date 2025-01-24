@@ -1,4 +1,6 @@
+## How to launch
 Game can be found under unity/assets/Car game.unity
+
 Doubleclick the file to open the project. Don't start with the unity launcher.
 Unity version used: 2022.3.51f1
 
@@ -14,3 +16,6 @@ Car Control.cs
 Finish.cs
 Timer.cs
 CortexInteract.cs
+
+## Video:
+https://www.dropbox.com/scl/fo/2r3hm2c69rl8ka958xu9r/AHL5SQPj7r4rRoIxq0xRphQ?rlkey=rzw9tltxihiwprllipqalls4p&e=1&st=0n2bj6y5&dl=0
