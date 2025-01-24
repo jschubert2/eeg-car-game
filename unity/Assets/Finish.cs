@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Finish : MonoBehaviour
 {
-    public TimerScript timerScript; // Reference to the TimerScript component
+    public TimerScript tim; 
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider player)
     {
-        // Ensure the collision is with the player
-        if (other.CompareTag("Player"))
+        // check collision tag to be "Player"
+        if (player.CompareTag("Player"))
         {
-            timerScript.StopTimer(); // Stop the timer
+            tim.StopTimer(); 
         }
     }
 }

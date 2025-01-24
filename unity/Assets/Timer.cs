@@ -4,9 +4,9 @@ using TMPro;
 
 public class TimerScript : MonoBehaviour
 {
-    public TMP_Text timerText; // Reference to the UI Text to display the timer
-    private float timer = 0f; // Variable to store the time
-    private bool isTiming = false; // Flag to control if the timer is running
+    public TMP_Text timerText; //timer UI element
+    private float timer = 0f; 
+    private bool isTiming = false; //is the timer running?
     public GameObject WinTxt;
     public GameObject TimerObj;
     void Start()
@@ -16,7 +16,7 @@ public class TimerScript : MonoBehaviour
     }
     void Update()
     {
-        // If the timer is active, increment and display it
+       
         if (isTiming)
         {
             timer += Time.deltaTime;
@@ -24,27 +24,26 @@ public class TimerScript : MonoBehaviour
         }
     }
 
-    // Method to display the time in minutes and seconds format
+    //format time 
     void DisplayTime(float timeToDisplay)
     {
         int minutes = Mathf.FloorToInt(timeToDisplay / 60); // Get minutes
         int seconds = Mathf.FloorToInt(timeToDisplay % 60); // Get seconds
 
-        // Format and display the time
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    // Method to stop the timer, can be called by the trigger event
+    //Stop the timer and display the win text
     public void StopTimer()
     {
         isTiming = false;
         WinTxt.SetActive(true);
     }
+    //start timer
     public void StartTimer()
     {
         isTiming = true;
         TimerObj.SetActive(true);
-        
     }
 
 }

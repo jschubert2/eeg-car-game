@@ -8,19 +8,20 @@ using System.Threading.Tasks;
 
 namespace EmotivUnityPlugin
 {
+    //
+
     /// <summary>
     /// EmotivUnityItf as interface for 3rd parties application work with Emotiv Unity Plugin
     /// </summary>
     public class EmotivUnityItf
     {
-        
+        //facial expression variables:
         public string UAct;
         public string LAct;
         public string EyeAct;
         public float UPow;
         public float LPow;
-        public string MCAct;
-        public float MCPow;
+
         private DataStreamManager _dsManager = DataStreamManager.Instance;
         private BCITraining _bciTraining = BCITraining.Instance;
         private RecordManager _recordMgr = RecordManager.Instance;
@@ -31,8 +32,8 @@ namespace EmotivUnityPlugin
 
         bool _isProfileLoaded = false;
         private string _workingHeadsetId = "";
-        private string _dataSubLog = ""; // data subscribing log
-        private string _trainingLog = ""; // training log
+        private string _dataSubLog = ""; 
+        private string _trainingLog = ""; 
 
         private string _messageLog = "";
 
@@ -53,7 +54,7 @@ namespace EmotivUnityPlugin
             public string act = "NULL";
             public double pow = 0;
         }
-        public MentalComm LatestMentalCommand { get; private set; } = new MentalComm();
+        public MentalComm LatestMentalCommand { get; private set; } = new MentalComm(); //used for mental commands
 
         /// <summary>
         /// Set up App configuration.
@@ -69,7 +70,7 @@ namespace EmotivUnityPlugin
             _dsManager.SetAppConfig(clientId, clientSecret, appVersion, appName);
         }
 
-        // Init
+    
         public void Init(string clientId, string clientSecret, string appName, 
                          string appVersion = "", bool isDataBufferUsing = true)
         {
@@ -80,14 +81,14 @@ namespace EmotivUnityPlugin
             }
             _dsManager.SetAppConfig(clientId, clientSecret, appVersion, appName);
             _dsManager.IsDataBufferUsing = isDataBufferUsing;
-            // init bcitraining
+
             _bciTraining.Init();
 
-            // binding
+           
             _dsManager.LicenseValidTo += OnLicenseValidTo;
             _dsManager.SessionActivatedOK += OnSessionActiveOK;
 
-            // if do not use data buffer to store data, we need to handle data stream signal
+            
             if (!isDataBufferUsing)
             {
                 _dsManager.EEGDataReceived += OnEEGDataReceived;
@@ -103,28 +104,23 @@ namespace EmotivUnityPlugin
             _dsManager.MentalCommandReceived += OnMentalCommandReceived;
             _dsManager.SysEventsReceived += OnSysEventsReceived;
 
-            // bind to record manager 
+           
             _recordMgr.informMarkerResult += OnInformMarkerResult;
             _recordMgr.informStartRecordResult += OnInformStartRecordResult;
             _recordMgr.informStopRecordResult += OnInformStopRecordResult;
 
-            // bci training
+
             _bciTraining.InformLoadUnLoadProfileDone += OnInformLoadUnLoadProfileDone;
-            // get error message
             _ctxClient.ErrorMsgReceived             += MessageErrorRecieved;
         }
 
-        /// <summary>
-        /// Start program: open websocket, authorize process
-        /// </summary>
+
         public void Start()
         {
             _dsManager.StartAuthorize();
         }
 
-        /// <summary>
-        /// Stop program to clear data, stop queryHeadset
-        /// </summary>
+
         public void Stop()
         {
             _dsManager.Stop();
@@ -133,21 +129,16 @@ namespace EmotivUnityPlugin
             _workingHeadsetId = "";
         }
 
-        /// <summary>
-        /// Create session with headset
-        /// </summary>
+
         public void CreateSessionWithHeadset(string headsetId)
         {
-            // start data stream without streams -> create session with the headset
+           
             if (_isAuthorizedOK)
                 _dsManager.StartDataStream(new List<string>(), headsetId);
             else
                 UnityEngine.Debug.LogWarning("Please wait authorize successfully before creating session with headset " + headsetId);
         }
 
-        /// <summary>
-        /// Subscribe data
-        /// </summary>
         public void SubscribeData(List<string> streamNameList)
         {
             if (_dsManager.IsSessionCreated)
@@ -156,75 +147,54 @@ namespace EmotivUnityPlugin
                 UnityEngine.Debug.LogWarning("Please wait session created successfully before subscribe data ");
         }
 
-        /// <summary>
-        /// Unsubscribe data
-        /// </summary>
+  
         public void UnSubscribeData(List<string> streamNameList)
         {
             _dsManager.UnSubscribeData(streamNameList);
         }
 
         
-        // --------Get subscribed data from buffer---------
-        /// <summary>
-        /// Get EEG channels lists.
-        /// </summary>
+
         public List<Channel_t> GetEEGChannels()
         {
             return _dsManager.GetEEGChannels();
         }
-        /// <summary>
-        /// Get EEG data by channel.
-        /// </summary>
+
         public double[] GetEEGData(Channel_t chan)
         {
             return _dsManager.GetEEGData(chan);
         }
 
-        /// <summary>
-        /// Get the current number of samples of a channel in eeg buffer.
-        /// </summary>
+
         public int GetNumberEEGSamples()
         {
             return _dsManager.GetNumberEEGSamples();
         }
 
-        // get motion data
-        /// <summary>
-        /// Get motion data by channel.
-        /// </summary>
+
         public double[] GetMotionData(Channel_t chan)
         {
             return _dsManager.GetMotionData(chan);
         }
 
-        /// <summary>
-        /// Get Motion channel lists.
-        /// </summary>
+
         public List<Channel_t> GetMotionChannels()
         {
             return _dsManager.GetMotionChannels();
         }
 
-        /// <summary>
-        /// Get the current number of samples of a channel in motion buffer.
-        /// </summary>
+
         public int GetNumberMotionSamples()
         {
             return _dsManager.GetNumberMotionSamples();
         }
-        // get band power data
-        /// <summary>
-        /// Get band power label lists.
-        /// </summary>
+
         public List<string> GetBandPowerLists()
         {
             return _dsManager.GetBandPowerLists();
         }
 
-        /// <summary>
-        /// Get the current number of samples of a channel in band power buffer.
-        /// </summary>
+
         public int GetNumberPowerBandSamples()
         {
             return _dsManager.GetNumberPowerBandSamples();
@@ -249,93 +219,66 @@ namespace EmotivUnityPlugin
             }
         }
 
-        //=== Peformance metric data ===
-        /// <summary>
-        /// Get Performance metrics label lists.
-        /// </summary>
+
         public List<string> GetPMLists()
         {
             return _dsManager.GetPMLists();
         }
 
-        /// <summary>
-        /// Get the current number of samples of a channel in performance metric buffer.
-        /// </summary>
+
         public int GetNumberPMSamples()
         {
             return _dsManager.GetNumberPMSamples();
         }
 
-        /// <summary>
-        /// Get peformance metric data by label.
-        /// </summary>
+
         public double GetPMData(string label)
         {
             return _dsManager.GetPMData(label);
         }
 
-        /// <summary>
-        /// Get contact quality by channel.
-        /// </summary>
+
         public double GetContactQuality(Channel_t channel)
         {
             return _dsManager.GetContactQuality(channel);
         }
 
-        /// <summary>
-        /// Get contact quality by channelId.
-        /// </summary>
+  
         public double GetContactQuality(int channelId)
         {
             return _dsManager.GetContactQuality(channelId);
         }
 
-        /// <summary>
-        /// Get the current number of samples of a channel in contact quality or dev buffer.
-        /// </summary>
+
         public int GetNumberCQSamples()
         {
             return _dsManager.GetNumberCQSamples();
         }
 
-        //--------End functions which get data from buffer--------------
-        
-        /// <summary>
-        /// Create a record
-        /// </summary>
         public void StartRecord(string title, string description = null,
                                  string subjectName = null, List<string> tags = null)
         {
             _recordMgr.StartRecord(title, description, subjectName, tags);
         }
 
-        /// <summary>
-        /// Stop current record
-        /// </summary>
+
         public void StopRecord()
         {
             _recordMgr.StopRecord();
         }
 
-        /// <summary>
-        /// Add an instance marker
-        /// </summary>
         public void InjectMarker(string markerLabel, string markerValue)
         {
             _recordMgr.InjectMarker(markerLabel, markerValue);
         }
 
-        /// <summary>
-        /// Update current instance marker
-        /// </summary>
+
         public void UpdateMarker()
         {
-            _recordMgr.UpdateMarker(); // TODO: add tags as parameter for update marker
+            _recordMgr.UpdateMarker(); 
         }
 
-        /// <summary>
-        /// Load a profile if is existed or create and load profile if it is not existed
-        /// </summary>
+
         public void LoadProfile(string profileName)
         {
             if (!string.IsNullOrEmpty(_workingHeadsetId))
@@ -344,9 +287,7 @@ namespace EmotivUnityPlugin
                 UnityEngine.Debug.LogError("LoadProfile: Please create a session with a headset first.");
         }
 
-        /// <summary>
-        /// Unload a profile
-        /// </summary>
+
         public void UnLoadProfile(string profileName)
         {
             if (!string.IsNullOrEmpty(_workingHeadsetId))
@@ -355,9 +296,7 @@ namespace EmotivUnityPlugin
                 UnityEngine.Debug.LogError("UnLoadProfile: Please create a session with a headset first.");
         }
 
-        /// <summary>
-        /// Save a profile
-        /// </summary>
+
         public void SaveProfile(string profileName)
         {
             if (!string.IsNullOrEmpty(_workingHeadsetId))
@@ -366,9 +305,7 @@ namespace EmotivUnityPlugin
                 UnityEngine.Debug.LogError("SaveProfile: Please create a session with a headset first.");
         }
 
-        /// <summary>
-        /// Start a Mental command Training
-        /// </summary>
+
         public void StartMCTraining(string action)
         {
             if (_isProfileLoaded)
@@ -381,42 +318,31 @@ namespace EmotivUnityPlugin
             }
         }
 
-        /// <summary>
-        /// Accept a Mental command Training
-        /// </summary>
+
         public void AcceptMCTraining()
         {
             _bciTraining.AcceptTraining("mentalCommand");
         }
 
-        /// <summary>
-        /// Reject a Mental command Training
-        /// </summary>
+
         public void RejectMCTraining()
         {
             _bciTraining.RejectTraining("mentalCommand");
         }
 
-        /// <summary>
-        /// Erase a Mental command Training
-        /// </summary>
+
         public void EraseMCTraining(string action)
         {
             _bciTraining.EraseTraining(action, "mentalCommand");
         }
 
-        /// <summary>
-        /// Reset Mental command Training
-        /// </summary>
+
         public void ResetMCTraining(string action)
         {
             _bciTraining.ResetTraining(action, "mentalCommand");
         }
 
-        // training fe
-        /// <summary>
-        /// Start a Facial Expression Training
-        /// </summary>
+
         public void StartFETraining(string action)
         {
             if (_isProfileLoaded)
@@ -429,42 +355,30 @@ namespace EmotivUnityPlugin
             }
         }
 
-        /// <summary>
-        /// Accept a Facial Expression Training
-        /// </summary>
+
         public void AcceptFETraining()
         {
             _bciTraining.AcceptTraining("facialExpression");
         }
 
-        /// <summary>
-        /// Reject a Facial Expression Training
-        /// </summary>
+
         public void RejectFETraining()
         {
             _bciTraining.RejectTraining("facialExpression");
         }
 
-        /// <summary>
-        /// Erase a Facial Expression Training
-        /// </summary>
+
         public void EraseFETraining(string action)
         {
             _bciTraining.EraseTraining(action, "facialExpression");
         }
 
-        /// <summary>
-        /// Reset Facial Expression Training
-        /// </summary>
         public void ResetFETraining(string action)
         {
             _bciTraining.ResetTraining(action, "facialExpression");
         }
 
-        // other BCI APIs
 
-
-        // Event handlers
         private void OnLicenseValidTo(object sender, DateTime validTo)
         {
             UnityEngine.Debug.Log("OnLicenseValidTo: the license valid to " + Utils.ISODateTimeToString(validTo));
@@ -527,14 +441,12 @@ namespace EmotivUnityPlugin
             _messageLog = tmpText;
         }
 
-        // Handle events  if we do not use data buffer of Emotiv Unity Plugin
         private void OnBandPowerDataReceived(object sender, ArrayList e)
         {
             string dataText = "pow data: ";
             foreach (var item in e) {
                 dataText += item.ToString() + ",";
             }
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
         }
 
@@ -544,7 +456,6 @@ namespace EmotivUnityPlugin
             foreach (var item in e) {
                 dataText += item.ToString() + ",";
             }
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
         }
 
@@ -554,7 +465,6 @@ namespace EmotivUnityPlugin
             foreach (var item in e) {
                 dataText += item.ToString() + ",";
             }
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
         }
 
@@ -564,7 +474,6 @@ namespace EmotivUnityPlugin
             foreach (var item in e) {
                 dataText += item.ToString() + ",";
             }
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
         }
 
@@ -574,24 +483,21 @@ namespace EmotivUnityPlugin
             foreach (var item in e) {
                 dataText += item.ToString() + ",";
             }
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
         }
 
         private void OnSysEventsReceived(object sender, SysEventArgs data)
         {
             string dataText = "sys data: " + data.Detection + ", event: " + data.EventMessage + ", time " + data.Time.ToString();
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
-            // show the system event to message log
             _messageLog = dataText;
         }
 
         private void OnMentalCommandReceived(object sender, MentalCommandEventArgs data)
         {
             string dataText = "com data: " + data.Act + ", power: " + data.Pow.ToString() + ", time " + data.Time.ToString();
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
+            //added:
             LatestMentalCommand.act = data.Act;
             LatestMentalCommand.pow = data.Pow;
             
@@ -602,8 +508,8 @@ namespace EmotivUnityPlugin
             string dataText = "fac data: eye act " + data.EyeAct+ ", upper act: " +
                                 data.UAct + ", upper act power " + data.UPow.ToString() + ", lower act: " +
                                 data.LAct + ", lower act power " + data.LPow.ToString() + ", time: " + data.Time.ToString();
-            // print out data to console
             UnityEngine.Debug.Log(dataText);
+            //added:
             UAct = data.UAct;
             LAct = data.LAct;
             EyeAct = data.EyeAct;

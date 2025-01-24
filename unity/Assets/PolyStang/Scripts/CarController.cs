@@ -8,21 +8,21 @@ namespace PolyStang
 {
     public class CarController : MonoBehaviour
     {
-        public enum ControlMode // this car controller works for both pc and touch devices. You can switch the control mode from the inspector.
+        public enum ControlMode //added EEG control mode
         {
             Keyboard,
             Buttons,
-            Emotiv
+            EEG
         };
 
-        public enum Axel // used to identify front and rear wheels.
+        public enum Axel 
         {
             Front,
             Rear
         }
 
         [Serializable]
-        public struct Wheel // wheel bits: all fields must be filled to make the wheel work properly.
+        public struct Wheel 
         {
             public GameObject wheelModel;
             public WheelCollider wheelCollider;
@@ -85,7 +85,7 @@ namespace PolyStang
 
         EmotivUnityItf _eItf = EmotivUnityItf.Instance;
 
-        void Start() // called the first frame, when the game starts.
+        void Start() 
         {
             carRb = GetComponent<Rigidbody>();
             carRb.centerOfMass = _centerOfMass;
@@ -94,7 +94,7 @@ namespace PolyStang
             carSounds = GetComponent<CarSounds>();
         }
 
-        void Update() // called every frame.
+        void Update() 
         {
             GetInputs();
             AnimateWheels();
@@ -102,7 +102,7 @@ namespace PolyStang
             CarLightsControl();
         }
 
-        void LateUpdate() // called after the "Update()" function.
+        void LateUpdate() 
         {
             Move();
             Steer();
@@ -110,28 +110,28 @@ namespace PolyStang
             UpdateSpeedUI();
         }
 
-        public void MoveInput(float input) // used for touch controls.
+        public void MoveInput(float input) 
         {
             moveInput = input;
         }
 
-        public void SteerInput(float input) // used for touch controls.
+        public void SteerInput(float input) 
         {
             steerInput = input;
         }
 
-        void GetInputs() // inputs, called once per frame
+        void GetInputs() 
         {
             if (control == ControlMode.Keyboard)
             {
                 moveInput = Input.GetAxis("Vertical");
                 steerInput = Input.GetAxis("Horizontal");
             }
-            else if (control == ControlMode.Emotiv)
+            else if (control == ControlMode.EEG) //added headset control mode
             {
                 
                 //Facial Expression controls:
-                if (_eItf.UPow > 0.6) //test the threshhold with live headset
+                if(_eItf.UPow > 0.3 || _eItf.LPow > 0.3)
                 {
                     switch (_eItf.UAct)
                     {
@@ -142,11 +142,9 @@ namespace PolyStang
                             steerInput = 1; // Right
                             break;
                         default:
+                            steerInput = 0;
                             break;
                     }
-                }
-                if (_eItf.LPow > 0.6) //test the threshhold with live headset
-                {
                     switch (_eItf.LAct)
                     {
                         case "smile":
@@ -156,26 +154,28 @@ namespace PolyStang
                             moveInput = -1; // Backward
                             break;
                         default:
+                            moveInput = 0;
                             break;
                     }
                 }
-
                 //Mental Command controls:
-                if (_eItf.LatestMentalCommand.pow > 0.3) //test the threshhold with live headset
+                else if (_eItf.LatestMentalCommand.pow > 0.3)
                 {
                     switch (_eItf.LatestMentalCommand.act)
                     {
-                        case "pull":
+                        case "push":
                             moveInput = 1; // Forward
                             break;
-                        case "push":
+                        case "pull":
                             moveInput = -1; // Backward
                             break;
-                        case "lift":
+                        case "left":
                             steerInput = -1; // Left
+                            moveInput = 1; // Forward
                             break;
-                        case "drop":
+                        case "right":
                             steerInput = 1; // Right
+                            moveInput = 1; // Forward
                             break;
                         default:
                             break;
@@ -183,27 +183,27 @@ namespace PolyStang
                 }
                 else
                 {
-                    moveInput = 0;
+                    moveInput = 0; //stop input when nothing is detected
                     steerInput = 0;
                 }
             }
         }
 
-        void Move() // main vertical acceleration.
+        void Move() 
         {
             foreach (var wheel in wheels)
             {
-                // rotational speed is proportional to radius * frequency: the empirical coefficient is around 0.41
+               
                 float currentWheelSpeed = empiricalCoefficient * wheel.wheelCollider.radius * wheel.wheelCollider.rpm;
 
-                if (moveInput > 0 || currentWheelSpeed > 0) // when moving forwards
+                if (moveInput > 0 || currentWheelSpeed > 0) 
                 { 
-                    if(currentWheelSpeed > frontMaxSpeed) // important check: it prevents the car from accelerating indefinetly
+                    if(currentWheelSpeed > frontMaxSpeed) 
                     {
                         currentWheelSpeed = frontMaxSpeed;
                     }
                     
-                    // cases: different speed reducing technics
+                  
                     if (typeOfSpeedLimit == TypeOfSpeedLimit.noSpeedLimit)
                     {
                         frontSpeedReducer = 1;
@@ -217,17 +217,17 @@ namespace PolyStang
                         frontSpeedReducer = Mathf.Sqrt(Mathf.Abs((frontMaxSpeed - currentWheelSpeed) / frontMaxSpeed));
                     }
 
-                    // applying reduction
+                    
                     wheel.wheelCollider.motorTorque = moveInput * 600 * maxAcceleration * frontSpeedReducer * Time.deltaTime;
                 }
-                else if (moveInput < 0 || currentWheelSpeed < 0) // when moving backwards
+                else if (moveInput < 0 || currentWheelSpeed < 0) 
                 {
-                    if (currentWheelSpeed < - rearMaxSpeed) // important check: it prevents the car from accelerating indefinetly
+                    if (currentWheelSpeed < - rearMaxSpeed) 
                     {
                         currentWheelSpeed = - rearMaxSpeed;
                     }
 
-                    // cases: different speed reducing technics
+                 
                     if (typeOfSpeedLimit == TypeOfSpeedLimit.noSpeedLimit)
                     {
                         rearSpeedReducer = 1;
@@ -241,13 +241,13 @@ namespace PolyStang
                         rearSpeedReducer = Mathf.Sqrt(Mathf.Abs((rearMaxSpeed + currentWheelSpeed) / rearMaxSpeed));
                     }
 
-                    // applying reduction
+                  
                     wheel.wheelCollider.motorTorque = moveInput * 600 * maxAcceleration * rearSpeedReducer * Time.deltaTime;
                 }
             }
         }
 
-        void Steer() // to rotate the front wheels, when steering.
+        void Steer() 
         {
             foreach (var wheel in wheels)
             {
@@ -261,7 +261,7 @@ namespace PolyStang
 
         void BrakeAndDeacceleration()
         {
-            if (Input.GetKey(brakeKey)) // when pressing space, the brake is used.
+            if (Input.GetKey(brakeKey))
             {
                 foreach (var wheel in wheels)
                 {
@@ -269,14 +269,14 @@ namespace PolyStang
                 }
 
             }
-            else if (moveInput == 0) // with no vertical input, a slight deacceleration is used to slightly slow down the speed of the car.
+            else if (moveInput == 0) 
             {
                 foreach (var wheel in wheels)
                 {
                     wheel.wheelCollider.brakeTorque = 300 * noInputDeacceleration * Time.deltaTime;
                 }
             }
-            else // with vertical input, no brake or deacceleration is applied.
+            else 
             {
                 foreach (var wheel in wheels)
                 {
@@ -285,7 +285,7 @@ namespace PolyStang
             }
         }
 
-        void AnimateWheels() // to animate wheels accordingly to the car speed.
+        void AnimateWheels() 
         {
             foreach (var wheel in wheels)
             {
@@ -297,45 +297,45 @@ namespace PolyStang
             }
         }
 
-        void WheelEffectsCheck() // checking for every wheel if it's slipping: if yes, the "EffectCreate()" function is called.
+        void WheelEffectsCheck() 
         {
             foreach (var wheel in wheels)
             {
-                // slipping ---> skid
-                WheelHit GroundHit; // variable to store hit data
-                wheel.wheelCollider.GetGroundHit(out GroundHit); // store hit data into GroundHit
+                
+                WheelHit GroundHit; 
+                wheel.wheelCollider.GetGroundHit(out GroundHit); 
                 float lateralDrift = Mathf.Abs(GroundHit.sidewaysSlip);
 
                 if (Input.GetKey(brakeKey) && wheel.axel == Axel.Rear && wheel.wheelCollider.isGrounded == true && carRb.velocity.magnitude >= brakeDriftingSkidLimit)
                 {
                     EffectCreate(wheel);
                 }
-                else if (wheel.wheelCollider.isGrounded == true && wheel.axel == Axel.Front && (lateralDrift > lateralFrontDriftingSkidLimit)) // drifting: front wheels
+                else if (wheel.wheelCollider.isGrounded == true && wheel.axel == Axel.Front && (lateralDrift > lateralFrontDriftingSkidLimit)) 
                 {
                     EffectCreate(wheel);
                 }
-                else if (wheel.wheelCollider.isGrounded == true && wheel.axel == Axel.Rear && (lateralDrift > lateralRearDriftingSkidLimit)) // drifting: rear wheels
+                else if (wheel.wheelCollider.isGrounded == true && wheel.axel == Axel.Rear && (lateralDrift > lateralRearDriftingSkidLimit))
                 {
                     EffectCreate(wheel);
                 }
                 else
                 {
                     wheel.wheelEffectObj.GetComponentInChildren<TrailRenderer>().emitting = false;
-                    carSounds.StopSkidSound(wheel.skidSound, wheel.index); // actually decreasing the volume of the skid to 0: see the "CarSound" script.
+                    carSounds.StopSkidSound(wheel.skidSound, wheel.index); 
                 }
             }
         }
 
-        private void EffectCreate(Wheel wheel) // actually creating the effects: 1) trail renderer for the skid, 2) smoke particles, 3) skid sound.
+        private void EffectCreate(Wheel wheel) 
         {
             wheel.wheelEffectObj.GetComponentInChildren<TrailRenderer>().emitting = true;
             wheel.smokeParticle.Emit(1);
-            carSounds.PlaySkidSound(wheel.skidSound); // actually setting the volume of the skid to 1
+            carSounds.PlaySkidSound(wheel.skidSound);
         }
 
-        void CarLightsControl() // controlling lights, through the specific script "CarSounds".
+        void CarLightsControl() 
         {
-            if (Input.GetKey(brakeKey)) // the red lights are activated when the brake is pressed
+            if (Input.GetKey(brakeKey)) 
             {
                 carLights.RearRedLightsOn();
             }
@@ -344,7 +344,7 @@ namespace PolyStang
                 carLights.RearRedLightsOff();
             }
 
-            if (moveInput < 0f) // the rear white lights are activated when the player is pressing "S" or down arrow.
+            if (moveInput < 0f) 
             {
                 carLights.RearWhiteLightsOn();
             }
@@ -354,7 +354,7 @@ namespace PolyStang
             }
         }
 
-        void UpdateSpeedUI() // UI: speed update.
+        void UpdateSpeedUI() 
         {
             int roundedSpeed = (int)Mathf.Round(carRb.velocity.magnitude * UISpeedMultiplier);
             speedText.text = roundedSpeed.ToString();
