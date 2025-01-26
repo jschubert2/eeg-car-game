@@ -5,7 +5,7 @@ Doubleclick the file to open the project. Don't start it with the unity hub.
 
 Unity version used: 2022.3.51f1
 
-## Plugins & Assetss used:
+## Plugins & Assets used:
 Emotiv unity plugin:
 
 https://github.com/Emotiv/unity-plugin
