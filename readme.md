@@ -1,14 +1,21 @@
 ## How to launch
 Game can be found under unity/assets/Car game.unity
 
-Doubleclick the file to open the project. Don't start it with the unity launcher.
+Doubleclick the file to open the project. Don't start it with the unity hub.
 
 Unity version used: 2022.3.51f1
 
-## Asset Store Assets:
+## Plugins & Assetss used:
+Emotiv unity plugin:
+
+https://github.com/Emotiv/unity-plugin
+
 Polystang CC: 
+
 https://assetstore.unity.com/packages/tools/physics/polystang-cc-269404?srsltid=AfmBOoo8u0crha2oY-gW5ONfg44KbucMatGMh6A-jgrm0eHQzLW7SE3a
+
 City pack: 
+
 https://assetstore.unity.com/packages/3d/environments/urban/city-package-107224
 
 ## Created and modified scripts for the project:
